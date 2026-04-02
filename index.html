@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CampusSafe Enterprise | Level 6 UI</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-mesh: radial-gradient(at 0% 0%, rgba(224, 231, 255, 1) 0px, transparent 50%), radial-gradient(at 100% 0%, rgba(254, 226, 226, 0.4) 0px, transparent 50%), #f8fafc;
+    --glass: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.5);
+    --text: #0f172a; --muted: #64748b;
+    --brand: #4f46e5; --brand-hover: #4338ca;
+    --red: #ef4444; --orange: #f97316; --green: #10b981;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; }
+  body { background: var(--bg-mesh); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+  
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+  /* FLOATING SIDEBAR */
+  .sidebar { width: 260px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); color: white; display: flex; flex-direction: column; padding: 32px 20px; z-index: 10; margin: 20px; border-radius: 32px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); position: relative; }
+  .logo { font-size: 22px; font-weight: 800; display: flex; align-items: center; gap: 12px; margin-bottom: 40px; letter-spacing: -0.5px; padding-left: 8px; }
+  .logo span { background: linear-gradient(135deg, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 24px; }
+  
+  /* NETWORK TOGGLE */
+  .network-status { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 16px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: 0.3s; }
+  .network-status:hover { background: rgba(255,255,255,0.1); }
+  .status-dot { width: 10px; height: 10px; background: var(--green); border-radius: 50%; box-shadow: 0 0 10px var(--green); transition: 0.3s; }
+  .status-dot.offline { background: var(--red); box-shadow: 0 0 10px var(--red); animation: blink 1s infinite; }
+  @keyframes blink { 50% { opacity: 0.3; } }
+
+  .nav-item { padding: 14px 16px; border-radius: 16px; cursor: pointer; color: #94a3b8; font-weight: 600; transition: all 0.3s; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; font-size: 15px; }
+  .nav-item:hover { background: rgba(255,255,255,0.08); color: white; transform: translateX(4px); }
+  .nav-item.active { background: linear-gradient(135deg, var(--brand), #3b82f6); color: white; box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3); }
+
+  /* SOS BUTTON */
+  .sos-btn { margin-top: auto; background: var(--red); color: white; padding: 16px; border-radius: 20px; text-align: center; font-weight: 800; cursor: pointer; transition: 0.3s; box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); animation: pulseSOS 2s infinite; border: 2px solid #fca5a5; }
+  .sos-btn:hover { background: #dc2626; transform: scale(1.02); }
+  @keyframes pulseSOS { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); } 70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0; } }
+
+  /* MAIN CONTENT */
+  .main-content { flex: 1; overflow-y: auto; padding: 40px 40px 40px 10px; position: relative; }
+  .view { display: none; animation: scaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+  .view.active { display: block; }
+  @keyframes scaleIn { from { opacity: 0; transform: scale(0.98) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+  /* HERO BANNER */
+  .hero-banner { width: 100%; max-width: 860px; height: 220px; border-radius: 32px; margin-bottom: 32px; background-image: url('campus.jpeg'); background-size: cover; background-position: center; position: relative; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.1); border: 1px solid var(--glass-border); background-color: #cbd5e1; }
+  .hero-overlay { position: absolute; inset: 0; background: linear-gradient(to right, rgba(15,23,42,0.85) 0%, rgba(15,23,42,0.4) 60%, transparent 100%); display: flex; flex-direction: column; justify-content: center; padding: 40px; }
+  .hero-title { color: white; font-size: 36px; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; }
+  .hero-subtitle { color: #cbd5e1; font-size: 16px; font-weight: 500; letter-spacing: 0.5px; }
+
+  .header { margin-bottom: 32px; }
+  .header h1 { font-size: 36px; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 8px; color: #0f172a; }
+  .card { background: var(--glass); backdrop-filter: blur(20px); border-radius: 32px; padding: 40px; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.05); border: 1px solid var(--glass-border); }
+  
+  .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 24px 0; }
+  .cat-box { padding: 24px 16px; border: 1px solid #e2e8f0; border-radius: 24px; text-align: center; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-weight: 700; background: rgba(255,255,255,0.5); box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+  .cat-box:hover { border-color: var(--brand); transform: translateY(-4px); background: white; box-shadow: 0 12px 20px rgba(79, 70, 229, 0.1); }
+  .cat-box.active { border-color: var(--brand); background: var(--brand); color: white; box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3); }
+
+  input, select, textarea { width: 100%; padding: 16px 20px; border: 1px solid #e2e8f0; border-radius: 16px; margin: 8px 0 24px; font-size: 15px; transition: 0.3s; background: rgba(255,255,255,0.6); outline: none; font-weight: 500; }
+  input:focus, select:focus, textarea:focus { border-color: var(--brand); background: white; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
+  label { font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-left: 4px; }
+  
+  .btn { background: linear-gradient(135deg, var(--brand), #3b82f6); color: white; padding: 18px 24px; border: none; border-radius: 16px; width: 100%; font-weight: 800; font-size: 16px; cursor: pointer; transition: all 0.3s; letter-spacing: 0.5px; }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.5); }
+  .btn-outline { background: white; color: var(--text); border: 2px solid #e2e8f0; box-shadow: none; }
+  .btn-outline:hover { background: #f8fafc; transform: translateY(-2px); }
+
+  /* FAILSAFE SCREEN */
+  .failsafe-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.98); backdrop-filter: blur(20px); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; opacity: 0; pointer-events: none; transition: 0.3s; color: white; text-align: center; padding: 20px; }
+  .failsafe-overlay.active { opacity: 1; pointer-events: auto; }
+  .failsafe-box { background: #000; border: 2px solid var(--red); border-radius: 32px; padding: 40px; max-width: 500px; width: 100%; box-shadow: 0 0 50px rgba(239,68,68,0.3); animation: failsafePulse 1s infinite alternate; }
+  @keyframes failsafePulse { from { border-color: #ef4444; box-shadow: 0 0 20px rgba(239,68,68,0.2); } to { border-color: #991b1b; box-shadow: 0 0 60px rgba(239,68,68,0.6); } }
+  
+  .dial-btn { display: block; background: #dc2626; color: white; text-decoration: none; padding: 20px; border-radius: 16px; font-size: 20px; font-weight: 800; margin-bottom: 16px; transition: 0.3s; }
+  .dial-btn:hover { background: #b91c1c; transform: scale(1.02); }
+  .siren-active { background: white !important; color: #dc2626 !important; animation: flash 0.2s infinite; }
+  @keyframes flash { 0% { background: white; color: #dc2626; } 50% { background: #dc2626; color: white; } }
+
+  /* TRACKING & ADMIN CARDS */
+  .track-card { background: white; border: 1px solid #e2e8f0; border-radius: 28px; padding: 32px; margin-bottom: 24px; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05); }
+  .track-header { display: flex; justify-content: space-between; align-items: start; border-bottom: 1px dashed #e2e8f0; padding-bottom: 24px; margin-bottom: 32px; }
+  .live-badge { display: inline-flex; align-items: center; gap: 8px; background: #fee2e2; color: #ef4444; padding: 6px 14px; border-radius: 24px; font-size: 12px; font-weight: 800; }
+  .stepper { display: flex; justify-content: space-between; position: relative; margin-bottom: 40px; padding: 0 10px; }
+  .stepper::before { content: ''; position: absolute; top: 16px; left: 30px; right: 30px; height: 4px; background: #f1f5f9; z-index: 1; }
+  .stepper-progress { position: absolute; top: 16px; left: 30px; height: 4px; background: linear-gradient(90deg, var(--brand), #3b82f6); z-index: 2; transition: 1s; }
+  .step { display: flex; flex-direction: column; align-items: center; z-index: 3; gap: 12px; width: 80px; }
+  .step-icon { width: 36px; height: 36px; border-radius: 50%; background: white; border: 4px solid #f1f5f9; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; color: #94a3b8; }
+  .step.completed .step-icon { background: var(--brand); border-color: var(--brand); color: white; }
+  .step.active .step-icon { border-color: var(--brand); color: var(--brand); box-shadow: 0 0 0 6px rgba(79, 70, 229, 0.15); }
+  .step-label { font-size: 12px; font-weight: 800; color: #94a3b8; text-transform: uppercase; }
+  .step.completed .step-label, .step.active .step-label { color: var(--text); }
+  .track-footer { background: #f8fafc; margin: -32px; margin-top: 0; padding: 20px 32px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+
+  /* ADMIN UI */
+  .grid-layout { display: grid; grid-template-columns: 1fr 360px; gap: 32px; }
+  .queue-item { background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.5); padding: 24px; border-radius: 24px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
+  .bento-stat { background: #0f172a; border-radius: 32px; padding: 32px; color: white; position: relative; overflow: hidden; box-shadow: 0 20px 40px rgba(15,23,42,0.2); }
+
+  .toast { position: fixed; bottom: 40px; right: 40px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); color: white; padding: 18px 28px; border-radius: 20px; font-weight: 600; box-shadow: 0 20px 40px rgba(0,0,0,0.2); transform: translateY(100px); opacity: 0; transition: 0.4s; z-index: 1000; display: flex; align-items: center; gap: 12px; border: 1px solid rgba(255,255,255,0.1); }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  /* MODALS */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.4); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 100; }
+  .modal-overlay.active { opacity: 1; pointer-events: auto; }
+  .modal { background: var(--bg-mesh); width: 100%; max-width: 560px; border-radius: 32px; padding: 40px; transform: scale(0.95); transition: 0.4s; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid white; }
+  .modal-overlay.active .modal { transform: scale(1); }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="logo"><span>🛡️</span> CampusSafe</div>
+  
+  <div class="network-status" onclick="toggleServerStatus()">
+    <div style="font-size: 12px; font-weight: 800; color: #94a3b8">SERVER LINK</div>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <span id="net-text" style="font-size: 13px; font-weight: 700; color: white">ONLINE</span>
+      <div id="net-dot" class="status-dot"></div>
+    </div>
+  </div>
+
+  <div class="nav-item active" id="tab-report" onclick="showView('report')">
+    <span style="font-size:18px">📝</span> File Report
+  </div>
+  <div class="nav-item" id="tab-track" onclick="showView('track')">
+    <span style="font-size:18px">📡</span> Live Tracking
+  </div>
+  <div class="nav-item" id="tab-admin" onclick="showView('admin')">
+    <span style="font-size:18px">📊</span> Admin Dashboard
+  </div>
+
+  <div class="sos-btn" onclick="triggerSOS()">
+    <div style="font-size: 24px; margin-bottom: 4px;">🚨</div>
+    EMERGENCY SOS
+  </div>
+</aside>
+
+<main class="main-content">
+  <div class="view active" id="view-report">
+    <div class="hero-banner">
+      <div class="hero-overlay">
+        <h1 class="hero-title">Chanakya University</h1>
+        <p class="hero-subtitle">Intelligent Campus Security & Incident Response</p>
+      </div>
+    </div>
+
+    <div class="card" style="max-width: 860px">
+      <label>1. Incident Category</label>
+      <div class="cat-grid">
+        <div class="cat-box" onclick="selectCat(this, 'Emergency')"><span style="font-size:32px; display:block; margin-bottom:12px">🚨</span>Emergency</div>
+        <div class="cat-box" onclick="selectCat(this, 'Harassment')"><span style="font-size:32px; display:block; margin-bottom:12px">🚫</span>Harassment</div>
+        <div class="cat-box" onclick="selectCat(this, 'Safety')"><span style="font-size:32px; display:block; margin-bottom:12px">⚠️</span>Safety Hazard</div>
+        <div class="cat-box" onclick="selectCat(this, 'Infrastructure')"><span style="font-size:32px; display:block; margin-bottom:12px">🔧</span>Infrastructure</div>
+        <div class="cat-box" onclick="selectCat(this, 'Lost')"><span style="font-size:32px; display:block; margin-bottom:12px">📦</span>Lost Item</div>
+        <div class="cat-box" onclick="selectCat(this, 'Suspicious')"><span style="font-size:32px; display:block; margin-bottom:12px">👁️</span>Suspicious</div>
+      </div>
+
+      <div style="display: flex; gap: 24px; margin-top: 32px">
+        <div style="flex: 1">
+          <label>Privacy Setting</label>
+          <select id="isAnon" onchange="document.getElementById('reporterName').disabled = this.value === 'true'">
+            <option value="false">Identified (Public)</option>
+            <option value="true">Anonymous Mode</option>
+          </select>
+        </div>
+        <div style="flex: 1">
+          <label>Student ID / Name</label>
+          <input type="text" id="reporterName" placeholder="e.g. 24UG00300">
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 24px">
+        <div style="flex: 2">
+          <label>Campus Location</label>
+          <select id="loc">
+            <option value="">-- Select Location --</option>
+            <option>MAIN GATE</option><option>ACADEMIC BLOCK 1</option><option>LIBRARY</option>
+            <option>CAFETERIA</option><option>LAWN AREA</option><option>ACADEMIC BLOCK 2</option>
+            <option>PREKSHA AUDITORIUM</option><option>BHARATHI AUDITORIUM</option><option>FOOD COURT</option>
+            <option>GYM</option><option>LAUNDRY</option><option>TEMPLE</option><option>FACULTY HOUSING</option>
+            <option>GUEST HOUSING</option><option>BOYS HOSTEL</option><option>GIRLS HOSTEL</option>
+            <option>MINI MART</option><option>SALON</option><option>CRICKET GROUND</option>
+            <option>BASKETBALL COURT</option><option>FLAGPOST</option><option>KONARK WHEEL</option>
+          </select>
+        </div>
+        <div style="flex: 1">
+          <label>Urgency (1-5)</label>
+          <input type="range" id="urgency" min="1" max="5" value="3" style="padding: 0; background: transparent; border: none; box-shadow: none; margin-top: 20px;">
+        </div>
+      </div>
+
+      <label>Detailed Description</label>
+      <textarea id="desc" rows="4" placeholder="Describe what happened in detail..."></textarea>
+
+      <label>Optional Evidence (Photo/Video)</label>
+      <input type="file" id="evidence" style="padding: 16px; border: 2px dashed #cbd5e1; background: rgba(255,255,255,0.5); cursor: pointer; margin-bottom: 32px; height: auto;">
+
+      <button class="btn" onclick="triggerConfirm()">Transmit Secure Report</button>
+    </div>
+  </div>
+
+  <div class="view" id="view-track">
+    <div class="header">
+      <h1>Live Response Tracking</h1>
+      <p style="color: var(--muted); font-size: 18px; font-weight: 500">Monitor the real-time pipeline of your submitted incidents.</p>
+    </div>
+    <div id="tracking-list" style="max-width: 860px"></div>
+  </div>
+
+  <div class="view" id="view-login">
+    <div class="header" style="text-align: center; margin-bottom: 40px; margin-top: 40px;">
+      <h1>Restricted Access</h1>
+      <p style="color: var(--muted); font-size: 18px; font-weight: 500">Authorized campus security personnel only.</p>
+    </div>
+    <div class="card" style="max-width: 480px; margin: 0 auto; text-align: center;">
+      <div style="font-size: 64px; margin-bottom: 24px;">🔒</div>
+      <label>SECURITY CLEARANCE PIN</label>
+      <input type="password" id="adminCode" placeholder="Enter Pin " style="text-align: center; font-size: 24px; letter-spacing: 8px; font-weight: 800;">
+      <button class="btn" onclick="verifyAdmin()">Authenticate</button>
+    </div>
+  </div>
+
+  <div class="view" id="view-admin">
+    <div class="header" style="display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <h1>Admin Dashboard</h1>
+        <p style="color: var(--muted); font-size: 18px; font-weight: 500">AI-prioritized security and infrastructure queue.</p>
+      </div>
+      <button class="btn-outline" onclick="logoutAdmin()" style="padding: 10px 20px; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+        <span>🔒</span> Lock Console
+      </button>
+    </div>
+    <div class="grid-layout">
+      <div id="admin-queue"></div>
+      <div>
+        <div class="bento-stat">
+          <div style="position: relative; z-index: 1">
+            <h3 style="margin-bottom: 32px; font-weight: 800; font-size: 24px; letter-spacing: -0.5px">Threat Analytics</h3>
+            <div style="margin-bottom: 24px">
+              <div style="font-size: 12px; color: #94a3b8; font-weight: 800; margin-bottom: 4px; letter-spacing: 1px">TOP HOTSPOT</div>
+              <div id="stat-hotspot" style="font-size: 22px; font-weight: 700; color: #38bdf8">Analyzing...</div>
+            </div>
+            <div style="margin-bottom: 32px">
+              <div style="font-size: 12px; color: #94a3b8; font-weight: 800; margin-bottom: 4px; letter-spacing: 1px">ACTIVE INCIDENTS</div>
+              <div id="stat-active" style="font-size: 40px; font-weight: 800; line-height: 1">0</div>
+            </div>
+            <button onclick="localStorage.clear(); location.reload();" style="width: 100%; background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 16px; border-radius: 16px; font-weight: 800; cursor: pointer; transition: 0.3s; letter-spacing: 1px">PURGE DATABASE</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="failsafe-overlay" id="failsafeUI">
+  <div style="font-size: 72px; margin-bottom: 16px">📡❌</div>
+  <h1 style="font-weight: 800; font-size: 48px; letter-spacing: -1px; margin-bottom: 12px">CONNECTION FAILED</h1>
+  <p style="font-size: 20px; color: #fca5a5; max-width: 600px; line-height: 1.5; margin-bottom: 40px">
+    The CampusSafe server is currently unreachable. The system has initiated the <b>Zero-Dependency Failsafe Protocol</b>. Do not panic. Use the direct cellular links below.
+  </p>
+  
+  <div class="failsafe-box">
+    <div style="font-size: 14px; font-weight: 800; letter-spacing: 2px; color: #fca5a5; margin-bottom: 24px">LOCAL OVERRIDE ACTIONS</div>
+    <a href="tel:112" class="dial-btn">📞 DIAL EMERGENCY (112)</a>
+    <a href="tel:18005550000" class="dial-btn" style="background: transparent; border: 2px solid white">📞 CALL CAMPUS POLICE</a>
+    <button class="dial-btn" id="sirenBtn" style="margin-top: 24px; background: #000; border: 2px solid #ef4444" onclick="toggleSiren()">🔊 SOUND LOCAL SIREN</button>
+  </div>
+
+  <button onclick="document.getElementById('failsafeUI').classList.remove('active')" style="margin-top: 40px; background: none; border: none; color: #94a3b8; text-decoration: underline; cursor: pointer">Return to App</button>
+</div>
+
+<div class="modal-overlay" id="confirmModal" onclick="closeModals(event)">
+  <div class="modal" style="max-width: 480px; text-align: center;">
+    <div style="font-size: 56px; margin-bottom: 16px;">⚠️</div>
+    <h2 style="font-weight: 800; font-size: 28px; margin-bottom: 12px; letter-spacing: -0.5px;">Confirm Submission</h2>
+    <p style="color: var(--muted); margin-bottom: 24px; line-height: 1.6; font-size: 15px;">Please confirm you want to submit this alert. False or accidental reporting disrupts campus security operations.</p>
+    
+    <div style="background: white; padding: 20px; border-radius: 20px; margin-bottom: 32px; text-align: left; border: 1px solid #e2e8f0;">
+      <div style="font-size: 11px; font-weight: 800; color: var(--muted); margin-bottom: 4px; letter-spacing: 1px">CATEGORY & LOCATION</div>
+      <div style="font-weight: 700; font-size: 18px" id="c-summary"></div>
+    </div>
+
+    <div style="display: flex; gap: 12px;">
+      <button class="btn btn-outline" onclick="document.getElementById('confirmModal').classList.remove('active')">Cancel</button>
+      <button class="btn" onclick="executeSubmit()">Yes, Transmit</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="adminModal" onclick="closeModals(event)">
+  <div class="modal">
+    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 32px">
+      <div>
+        <h2 id="m-cat" style="font-weight: 800; font-size: 28px; letter-spacing: -1px; margin-bottom: 4px"></h2>
+        <p id="m-id" style="font-family: monospace; color: var(--muted); font-weight: 600; font-size: 15px"></p>
+      </div>
+      <div id="m-score" style="background: #fee2e2; color: #ef4444; padding: 10px 20px; border-radius: 16px; font-weight: 800; font-size: 20px;"></div>
+    </div>
+    
+    <div style="background: white; padding: 20px; border-radius: 20px; margin-bottom: 24px; border: 1px solid #e2e8f0;">
+      <div style="font-size: 11px; font-weight: 800; color: var(--muted); margin-bottom: 6px; letter-spacing: 1px">LOCATION & REPORTER</div>
+      <div style="font-weight: 700; font-size: 16px" id="m-loc-rep"></div>
+    </div>
+    
+    <div style="margin-bottom: 40px; padding: 0 4px">
+      <div style="font-size: 11px; font-weight: 800; color: var(--muted); margin-bottom: 10px; letter-spacing: 1px">INCIDENT DESCRIPTION</div>
+      <p id="m-desc" style="line-height: 1.7; font-size: 16px; color: #334155; font-weight: 500"></p>
+    </div>
+
+    <div style="display: flex; gap: 12px">
+      <button class="btn" style="background: var(--brand); font-size: 15px; padding: 16px" onclick="updateCase('Under Review')">Review Case</button>
+      <button class="btn" style="background: var(--orange); font-size: 15px; padding: 16px" onclick="updateCase('Escalated')">Escalate Alert</button>
+      <button class="btn" style="background: var(--green); font-size: 15px; padding: 16px" onclick="updateCase('Resolved')">Mark Resolved</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span style="font-size: 20px">✅</span> <span id="toastMsg"></span></div>
+
+<script>
+  let reports = JSON.parse(localStorage.getItem('campusSafe_db')) || [];
+  let selectedCat = "";
+  let currentModalId = null;
+  let isAdminLoggedIn = sessionStorage.getItem('adminAuth') === 'true'; 
+  
+  // FAILSAFE STATE
+  let isServerDown = false;
+
+  function toggleServerStatus() {
+    isServerDown = !isServerDown;
+    const dot = document.getElementById('net-dot');
+    const text = document.getElementById('net-text');
+    
+    if (isServerDown) {
+      dot.classList.add('offline');
+      text.innerText = 'OFFLINE';
+      text.style.color = 'var(--red)';
+      showToast("Simulation: Server Connection Severed.");
+    } else {
+      dot.classList.remove('offline');
+      text.innerText = 'ONLINE';
+      text.style.color = 'white';
+      showToast("Simulation: Server Connection Restored.");
+    }
+  }
+
+  function toggleSiren() {
+    const btn = document.getElementById('sirenBtn');
+    btn.classList.toggle('siren-active');
+    if(btn.classList.contains('siren-active')) {
+      btn.innerText = "🛑 STOP SIREN";
+    } else {
+      btn.innerText = "🔊 SOUND LOCAL SIREN";
+    }
+  }
+
+  function showToast(msg) {
+    document.getElementById('toastMsg').innerText = msg;
+    const toast = document.getElementById('toast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  function showView(v) {
+    if (v === 'admin' && !isAdminLoggedIn) v = 'login';
+    document.querySelectorAll('.view').forEach(e => e.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
+    document.getElementById('view-'+v).classList.add('active');
+    const activeTab = v === 'login' ? 'admin' : v;
+    document.getElementById('tab-'+activeTab).classList.add('active');
+
+    if(v === 'admin') renderAdmin();
+    if(v === 'track') renderTrack();
+  }
+
+  function verifyAdmin() {
+    const pin = document.getElementById('adminCode').value;
+    if (pin === "7328") { 
+      isAdminLoggedIn = true;
+      sessionStorage.setItem('adminAuth', 'true');
+      document.getElementById('adminCode').value = '';
+      showToast("Clearance accepted. Welcome, Admin.");
+      showView('admin');
+    } else {
+      alert("Access Denied: Incorrect Security Pin.");
+      document.getElementById('adminCode').value = '';
+    }
+  }
+
+  function logoutAdmin() {
+    isAdminLoggedIn = false;
+    sessionStorage.removeItem('adminAuth');
+    showToast("Securely logged out of Dashboard.");
+    showView('report');
+  }
+
+  function selectCat(el, cat) {
+    document.querySelectorAll('.cat-box').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    selectedCat = cat;
+  }
+
+  function triggerSOS() {
+    if (isServerDown) {
+      document.getElementById('failsafeUI').classList.add('active');
+      return;
+    }
+
+    const locations = ["MAIN GATE", "LIBRARY", "GIRLS HOSTEL", "CAFETERIA"];
+    const mockLocation = locations[Math.floor(Math.random() * locations.length)];
+    
+    if(confirm(`⚠️ ACTIVATE EMERGENCY SOS?\nThis will bypass standard triage and instantly dispatch local security to your estimated location (${mockLocation}).`)) {
+      
+      const sosId = 'SOS-' + Math.floor(Math.random()*90000 + 10000);
+      const sosReport = {
+        id: sosId, cat: 'Emergency', loc: mockLocation, urgency: 5,
+        desc: 'AUTO-GENERATED SOS ALERT: Live location protocol triggered by user.',
+        reporter: 'Identity Masked 🕶️', status: 'Open', priority: 999, 
+        history: [{ status: 'Open', time: new Date().toLocaleTimeString(), note: 'SOS Triggered. System awaiting Admin response.' }]
+      };
+
+      reports.push(sosReport);
+      localStorage.setItem('campusSafe_db', JSON.stringify(reports));
+      showToast("SOS Broadcasted. Do not close this app.");
+      showView('track');
+
+      setTimeout(() => {
+        let currentReports = JSON.parse(localStorage.getItem('campusSafe_db')) || [];
+        let activeSos = currentReports.find(r => r.id === sosId);
+        
+        if(activeSos && activeSos.status === 'Open') {
+          activeSos.status = 'Bypassed: Guard Alerted';
+          activeSos.history.push({ 
+            status: 'System Bypass Activated', time: new Date().toLocaleTimeString(), 
+            note: 'Admin unresponsive. Direct live-location telemetry sent to nearest physical patrol guard.' 
+          });
+          reports = currentReports;
+          localStorage.setItem('campusSafe_db', JSON.stringify(reports));
+          showToast("Admin bypass successful. Local guard dispatched.");
+          if(document.getElementById('view-track').classList.contains('active')) renderTrack();
+          if(document.getElementById('view-admin').classList.contains('active')) renderAdmin();
+        }
+      }, 15000); 
+    }
+  }
+
+  function triggerConfirm() {
+    if(!selectedCat || !document.getElementById('loc').value || !document.getElementById('desc').value) {
+      alert("Validation Error: Please fill all required fields (Category, Location, Description)."); return;
+    }
+
+    if (isServerDown && selectedCat === 'Emergency') {
+      document.getElementById('failsafeUI').classList.add('active');
+      return;
+    } else if (isServerDown) {
+      alert("Network Error: The server is offline. If this is an emergency, press the SOS button to access the local failsafe.");
+      return;
+    }
+
+    document.getElementById('c-summary').innerText = `${selectedCat} at ${document.getElementById('loc').value}`;
+    document.getElementById('confirmModal').classList.add('active');
+  }
+
+  function executeSubmit() {
+    document.getElementById('confirmModal').classList.remove('active');
+    const isAnon = document.getElementById('isAnon').value === "true";
+    const report = {
+      id: 'CS-' + Math.floor(Math.random()*90000 + 10000),
+      cat: selectedCat, loc: document.getElementById('loc').value,
+      urgency: parseInt(document.getElementById('urgency').value),
+      desc: document.getElementById('desc').value,
+      reporter: isAnon ? "Identity Masked 🕶️" : (document.getElementById('reporterName').value || "Unknown"),
+      status: 'Open', submitTime: new Date().toLocaleString(),
+      history: [{ status: 'Open', time: new Date().toLocaleTimeString(), note: 'Encrypted payload received by server.' }]
+    };
+
+    const weights = { Emergency: 100, Harassment: 85, Safety: 45, Infrastructure: 20, Suspicious: 55, Lost: 5 };
+    const duplicates = reports.filter(r => r.loc === report.loc && r.status !== 'Resolved').length;
+    report.priority = (weights[report.cat] || 0) + (report.urgency * 15) + (duplicates * 20);
+
+    reports.push(report);
+    localStorage.setItem('campusSafe_db', JSON.stringify(reports));
+    
+    document.getElementById('desc').value = ""; document.getElementById('reporterName').value = "";
+    document.getElementById('evidence').value = "";
+    document.querySelectorAll('.cat-box').forEach(b => b.classList.remove('active'));
+    selectedCat = "";
+    
+    showToast("Incident successfully logged to secure server.");
+    setTimeout(() => showView('track'), 800);
+  }
+
+  function renderTrack() {
+    const list = document.getElementById('tracking-list');
+    if(reports.length === 0) return list.innerHTML = "<div class='card' style='text-align:center; color: var(--muted); font-weight:600; padding:60px'>No active reports found in your session.</div>";
+
+    list.innerHTML = reports.slice().reverse().map((r, index) => {
+      const steps = ['Open', 'Under Review', 'Escalated', 'Resolved'];
+      let currentStepIdx = steps.indexOf(r.status);
+      if (r.status === 'Resolved') currentStepIdx = 3; 
+      if (r.status.includes('Bypassed')) currentStepIdx = 2; 
+
+      const progressWidth = currentStepIdx === 0 ? "0%" : currentStepIdx === 1 ? "33%" : currentStepIdx === 2 ? "66%" : "100%";
+
+      let slaText = "Awaiting Assignment";
+      if (r.status === 'Open' && r.priority >= 100) slaText = "Unit Dispatched (ETA: < 5 mins)";
+      else if (r.status === 'Under Review') slaText = "Personnel On-Site";
+      else if (r.status.includes('Bypassed')) slaText = "Local Guard Approaching";
+      else if (r.status === 'Resolved') slaText = "Case Closed";
+
+      return `
+      <div class="track-card" style="animation-delay: ${index * 0.1}s; ${r.status.includes('Bypassed') ? 'border: 2px solid #ef4444' : ''}">
+        <div class="track-header">
+          <div>
+            <h3 style="font-size: 24px; font-weight: 800; margin-bottom: 6px; letter-spacing:-0.5px">${r.cat}</h3>
+            <span style="font-family: monospace; color: var(--muted); font-weight:600">${r.id} | 📍 ${r.loc}</span>
+          </div>
+          ${r.status !== 'Resolved' ? `<div class="live-badge"><span style="width:8px;height:8px;background:#ef4444;border-radius:50%"></span> LIVE SLA: ${slaText}</div>` : `<div style="padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 800; background:#dcfce7; color:#16a34a">RESOLVED</div>`}
+        </div>
+        <div class="stepper">
+          <div class="stepper-progress" style="width: ${progressWidth}"></div>
+          <div class="step ${currentStepIdx >= 0 ? 'completed' : ''} ${currentStepIdx === 0 ? 'active' : ''}"><div class="step-icon">${currentStepIdx > 0 ? '✓' : '1'}</div><div class="step-label">Submitted</div></div>
+          <div class="step ${currentStepIdx >= 1 ? 'completed' : ''} ${currentStepIdx === 1 ? 'active' : ''}"><div class="step-icon">${currentStepIdx > 1 ? '✓' : '2'}</div><div class="step-label">Reviewing</div></div>
+          <div class="step ${currentStepIdx >= 2 ? 'completed' : ''} ${currentStepIdx === 2 ? 'active' : ''}"><div class="step-icon">${currentStepIdx > 2 ? '✓' : '3'}</div><div class="step-label">Escalated</div></div>
+          <div class="step ${currentStepIdx === 3 ? 'completed active' : ''}"><div class="step-icon">${currentStepIdx === 3 ? '✓' : '4'}</div><div class="step-label">Resolved</div></div>
+        </div>
+        <div class="track-footer">
+          <div style="font-size: 14px; color: var(--muted); font-weight: 700">LATEST UPDATE: <span style="color: ${r.status.includes('Bypassed') ? 'var(--red)' : 'var(--text)'}">${r.history[r.history.length-1].note}</span></div>
+          ${r.status === 'Open' ? `<button onclick="withdrawReport('${r.id}')" style="background:none; border:none; color:var(--red); font-weight:800; cursor:pointer; font-size:13px; letter-spacing:0.5px">WITHDRAW REPORT</button>` : ''}
+        </div>
+      </div>
+    `}).join('');
+  }
+
+  function withdrawReport(id) {
+    if(confirm("Are you sure you want to withdraw this report?")) {
+      reports = reports.filter(r => r.id !== id);
+      localStorage.setItem('campusSafe_db', JSON.stringify(reports));
+      showToast("Report successfully withdrawn.");
+      renderTrack();
+    }
+  }
+
+  function renderAdmin() {
+    const q = document.getElementById('admin-queue');
+    reports.sort((a,b) => b.priority - a.priority);
+
+    q.innerHTML = reports.map(r => {
+      const color = r.priority > 90 ? 'var(--red)' : r.priority > 50 ? 'var(--orange)' : 'var(--brand)';
+      const bg = r.priority > 90 ? '#fee2e2' : r.priority > 50 ? '#ffedd5' : '#e0e7ff';
+      const isBypass = r.status.includes('Bypassed');
+      
+      return `
+      <div class="queue-item" onclick="openModal('${r.id}')" style="border-left: 6px solid ${color}; ${isBypass ? 'background: #fee2e2;' : ''}">
+        <div>
+          <div style="display:flex; align-items:center; gap: 12px; margin-bottom: 10px">
+            <div style="padding: 6px 12px; border-radius: 12px; font-size: 11px; font-weight: 800; background: ${r.status==='Open'?'#f1f5f9': isBypass ? '#ef4444' : '#dcfce7'}; color: ${r.status==='Open'?'#475569': isBypass ? 'white' : '#16a34a'}">${r.status}</div>
+            <h4 style="font-size: 20px; font-weight: 800; letter-spacing:-0.5px">${r.cat}</h4>
+          </div>
+          <div style="font-size: 14px; color: var(--muted); font-weight: 600">📍 ${r.loc} &nbsp;•&nbsp; 👤 ${r.reporter}</div>
+        </div>
+        <div style="background: ${bg}; color: ${color}; padding: 12px 20px; border-radius: 16px; font-weight: 800; font-size: 18px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.05)">
+          <div style="font-size: 10px; font-weight: 800; opacity: 0.8; letter-spacing:1px; margin-bottom:2px">SCORE</div>
+          ${r.priority}
+        </div>
+      </div>
+    `}).join('');
+
+    const active = reports.filter(r => r.status !== 'Resolved');
+    document.getElementById('stat-active').innerText = active.length;
+    
+    if(active.length > 0) {
+      const locCounts = {};
+      active.forEach(r => locCounts[r.loc] = (locCounts[r.loc] || 0) + 1);
+      const topLoc = Object.keys(locCounts).reduce((a, b) => locCounts[a] > locCounts[b] ? a : b);
+      document.getElementById('stat-hotspot').innerText = topLoc + ` (${locCounts[topLoc]})`;
+    } else {
+      document.getElementById('stat-hotspot').innerText = "None detected";
+    }
+  }
+
+  function openModal(id) {
+    const r = reports.find(x => x.id === id);
+    currentModalId = id;
+    document.getElementById('m-cat').innerText = r.cat;
+    document.getElementById('m-id').innerText = r.id;
+    document.getElementById('m-loc-rep').innerText = `📍 ${r.loc}   |   👤 ${r.reporter}`;
+    document.getElementById('m-desc').innerText = r.desc;
+    document.getElementById('m-score').innerText = `PRIORITY: ${r.priority}`;
+    document.getElementById('adminModal').classList.add('active');
+  }
+
+  function closeModals(e) {
+    if(e.target.id === 'adminModal') document.getElementById('adminModal').classList.remove('active');
+    if(e.target.id === 'confirmModal') document.getElementById('confirmModal').classList.remove('active');
+  }
+
+  function updateCase(status) {
+    const msgs = { 
+      'Under Review': 'Security personnel deployed to location.', 
+      'Escalated': 'Case escalated to Senior Management/Local Authorities.',
+      'Resolved': 'Case officially closed by Admin.' 
+    };
+    reports = reports.map(r => {
+      if(r.id === currentModalId) {
+        r.status = status;
+        if(status === 'Resolved') r.priority = 0;
+        r.history.push({ status: status, time: new Date().toLocaleTimeString(), note: msgs[status] });
+      }
+      return r;
+    });
+    localStorage.setItem('campusSafe_db', JSON.stringify(reports));
+    document.getElementById('adminModal').classList.remove('active');
+    showToast(`Case ${currentModalId} updated to ${status}.`);
+    renderAdmin();
+  }
+</script>
+</body>
+</html>
