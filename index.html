@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeCampus | Intelligent Incident Response</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .priority-high { border-left: 8px solid #ef4444; }
+        .priority-med { border-left: 8px solid #f59e0b; }
+        .priority-low { border-left: 8px solid #10b981; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans min-h-screen">
+
+    <nav class="bg-slate-900 text-white p-4 shadow-xl flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <span class="text-2xl">🛡️</span>
+            <h1 class="font-bold text-xl tracking-tight">SafeCampus <span class="text-blue-400 text-sm font-normal">v1.0</span></h1>
+        </div>
+        <div class="space-x-2">
+            <button onclick="showPage('student')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition">Report</button>
+            <button onclick="showPage('admin')" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg transition font-semibold">Admin Panel</button>
+        </div>
+    </nav>
+
+    <main id="student-page" class="max-w-xl mx-auto py-10 px-4">
+        <div class="bg-white rounded-2xl shadow-xl p-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">Submit Incident Report [cite: 7]</h2>
+            <p class="text-gray-500 mb-8 text-sm">Your safety is our priority. Please provide accurate details.</p>
+            
+            <form id="incidentForm" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Incident Category [cite: 9]</label>
+                    <select id="category" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" required>
+                        <option value="Emergency">🚨 Medical Emergency</option>
+                        <option value="Harassment">🚫 Harassment/Threat</option>
+                        <option value="Safety">⚠️ Security Concern</option>
+                        <option value="Infrastructure">🛠️ Infrastructure Hazard</option>
+                        <option value="Lost & Found">📦 Lost & Found</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center p-4 bg-blue-50 rounded-xl border border-blue-100">
+                    <input type="checkbox" id="isAnonymous" class="w-5 h-5 text-blue-600 rounded">
+                    <label for="isAnonymous" class="ml-3 text-sm font-medium text-blue-900">Enable Anonymous Reporting [cite: 8]</label>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Description [cite: 10]</label>
+                    <textarea id="description" rows="3" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none" placeholder="What happened?" required></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Location [cite: 10]</label>
+                        <input type="text" id="location" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="e.g. Block C" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Urgency (1-5) [cite: 10]</label>
+                        <input type="number" id="urgency" min="1" max="5" value="3" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold text-lg hover:bg-black transition-all shadow-lg active:scale-[0.98]">
+                    Send Secure Report
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <main id="admin-page" class="hidden max-w-6xl mx-auto py-10 px-4">
+        <div class="flex justify-between items-end mb-8">
+            <div>
+                <h2 class="text-3xl font-black text-slate-900">Incident Monitor [cite: 12]</h2>
+                <p class="text-slate-500">Intelligent prioritization active [cite: 11]</p>
+            </div>
+            <button onclick="localStorage.clear(); location.reload();" class="text-xs text-red-400 hover:text-red-600">Reset System</button>
+        </div>
+
+        <div id="adminContainer" class="grid gap-4">
+            </div>
+    </main>
+
+    <script>
+        const form = document.getElementById('incidentForm');
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const rawData = {
+                id: Date.now(),
+                category: document.getElementById('category').value,
+                description: document.getElementById('description').value,
+                location: document.getElementById('location').value,
+                urgency: parseInt(document.getElementById('urgency').value),
+                isAnonymous: document.getElementById('isAnonymous').checked,
+                status: 'Open', // [cite: 13]
+                timestamp: new Date().toLocaleString()
+            };
+
+            // INTELLIGENCE 1: Priority Calculation [cite: 11]
+            const weights = { 'Emergency': 50, 'Harassment': 40, 'Safety': 25, 'Infrastructure': 10, 'Lost & Found': 0 };
+            rawData.priorityScore = rawData.urgency + weights[rawData.category];
+
+            // INTELLIGENCE 2: Privacy Masking [cite: 15, 26]
+            if(rawData.isAnonymous) {
+                rawData.reporter = "Identity Masked";
+            } else {
+                rawData.reporter = "Student User #" + Math.floor(Math.random() * 1000);
+            }
+
+            // Save to LocalStorage
+            const reports = JSON.parse(localStorage.getItem('incidents') || '[]');
+            
+            // INTELLIGENCE 3: Spam/Duplicate Check [cite: 16]
+            const isDup = reports.some(r => r.category === rawData.category && r.location === rawData.location && r.status === 'Open');
+            if(isDup) rawData.status = 'Flagged: Duplicate';
+
+            reports.push(rawData);
+            localStorage.setItem('incidents', JSON.stringify(reports));
+
+            alert('Report submitted securely.');
+            form.reset();
+            showPage('admin');
+        });
+
+        function renderAdminDashboard() {
+            const container = document.getElementById('adminContainer');
+            const reports = JSON.parse(localStorage.getItem('incidents') || '[]');
+            
+            // Sort by Priority Score [cite: 21]
+            reports.sort((a, b) => b.priorityScore - a.priorityScore);
+
+            if(reports.length === 0) {
+                container.innerHTML = '<div class="text-center py-20 text-gray-400">No incidents reported.</div>';
+                return;
+            }
+
+            container.innerHTML = reports.map(r => `
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center ${getPriorityClass(r.priorityScore)}">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-black text-lg">${r.category}</span>
+                            <span class="text-xs px-2 py-0.5 bg-gray-100 rounded text-gray-500">${r.status}</span>
+                        </div>
+                        <p class="text-gray-600 text-sm">${r.description}</p>
+                        <div class="flex gap-4 text-xs text-gray-400 font-medium">
+                            <span>📍 ${r.location}</span>
+                            <span>👤 ${r.reporter}</span>
+                            <span>📅 ${r.timestamp}</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <button onclick="changeStatus(${r.id}, 'Under Review')" class="text-xs bg-blue-50 text-blue-600 px-3 py-2 rounded-lg font-bold hover:bg-blue-100">Review</button>
+                        <button onclick="changeStatus(${r.id}, 'Resolved')" class="text-xs bg-green-50 text-green-600 px-3 py-2 rounded-lg font-bold hover:bg-green-100">Resolve</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getPriorityClass(score) {
+            if(score > 40) return 'priority-high';
+            if(score > 20) return 'priority-med';
+            return 'priority-low';
+        }
+
+        function changeStatus(id, newStatus) {
+            let reports = JSON.parse(localStorage.getItem('incidents') || '[]');
+            reports = reports.map(r => r.id === id ? {...r, status: newStatus} : r);
+            localStorage.setItem('incidents', JSON.stringify(reports));
+            renderAdminDashboard();
+        }
+
+        function showPage(page) {
+            document.getElementById('student-page').classList.toggle('hidden', page !== 'student');
+            document.getElementById('admin-page').classList.toggle('hidden', page !== 'admin');
+            if(page === 'admin') renderAdminDashboard();
+        }
+    </script>
+</body>
+</html>
